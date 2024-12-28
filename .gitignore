@@ -43,3 +43,16 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux
+
+# Ignore build artifacts
+/target/
+
+# Ignore rust-specific editor backups
+*.rs.bk
+
+# Ignore IDE config files (you can customize this based on your IDE)
+.idea/
+.vscode/
+
+# Ignore temporary files
+*.swp
