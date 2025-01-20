@@ -13,7 +13,6 @@ Developed by [Laura A.](https://github.com/sally55uwu) and [Elizabeth V.](https:
 TODO:
 
 | Elizabeth | Laura |
-|___________|_______|
 |:----------|------:|
 |pause []   |play []|
 |vd    []   |vu   []|
