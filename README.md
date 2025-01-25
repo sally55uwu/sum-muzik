@@ -23,14 +23,13 @@ cargo run
 
 TODO:
 
-| Elizabeth | Laura |
-|:----------|------:|
-|pause []   |play []|
-|vd    []   |vu   []|
-|           |       |     
-|           |       |
-|           |       |
-|           |       |
-|           |       |
-
+| Elizabeth      | Laura     |
+|:---------------|----------:|
+|[] pause        |play []    |
+|[/] vd Windows  |vd Linux []|
+|[/] vu Windows  |vu Linux []|     
+|                |           |
+|                |           |
+|                |           |
+|                |           |
 
