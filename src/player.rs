@@ -1,3 +1,4 @@
+use rodio::OutputStream;
 /**
  * player.rs
  * Audio Playback Handler
@@ -97,3 +98,46 @@ pub fn update_master_volume(volume_up: bool, volume_change: Option<f32>) {
 }
 
 // End of Windows Volume Control -----------------------------------------------
+
+/*
+ *
+ *I will begin all the player stuff here
+ *we can refactor later
+ * */
+
+use std::error::Error;
+use std::io::BufReader;
+
+pub fn provide_path() -> String{
+    println!("provide the relative path
+              where the song is");
+
+    let mut line = String::new(); 
+    
+
+    std::io::stdin().read_line(&mut line).unwrap();
+
+    line
+
+}
+
+
+pub fn play_music() -> Result<(), Box<dyn Error>>{
+
+    let song = provide_path();
+
+    println!("song path given: {}", song);
+
+    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+
+    let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+
+    let file = std::fs::File::open("../music_examples/bring-me-the-horizon-sempiternal/04 Sleepwalking.mp3")?;
+
+    sink.append(rodio::Decoder::new(BufReader::new(file))?);
+
+    sink.sleep_until_end();
+    
+    Ok(())
+}
+
