@@ -3,6 +3,9 @@ use rodio::OutputStream;
  * player.rs
  * Audio Playback Handler
 */
+use std::path::PathBuf;
+use std::process;
+
 #[cfg(target_os = "windows")]
 use windows_volume_control::AudioController;
 
@@ -108,36 +111,35 @@ pub fn update_master_volume(volume_up: bool, volume_change: Option<f32>) {
 use std::error::Error;
 use std::io::BufReader;
 
-pub fn provide_path() -> String{
-    println!("provide the relative path
-              where the song is");
+pub fn provide_path() -> PathBuf {
+    // OS-specific path matters!
+    println!("Provide the absolute path where the song is:");
 
-    let mut line = String::new(); 
-    
+    let mut line = String::new();
 
     std::io::stdin().read_line(&mut line).unwrap();
 
-    line
+    let path = PathBuf::from(&line.trim());
+    if !path.exists() {
+        println!("File does not exist");
+        process::exit(1);
+    }
 
+    path
 }
 
-
-pub fn play_music() -> Result<(), Box<dyn Error>>{
-
+pub fn play_music() -> Result<(), Box<dyn Error>> {
     let song = provide_path();
-
-    println!("song path given: {}", song);
 
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
 
     let sink = rodio::Sink::try_new(&stream_handle).unwrap();
 
-    let file = std::fs::File::open("../music_examples/bring-me-the-horizon-sempiternal/04 Sleepwalking.mp3")?;
+    let file = std::fs::File::open(song)?;
 
     sink.append(rodio::Decoder::new(BufReader::new(file))?);
 
     sink.sleep_until_end();
-    
+
     Ok(())
 }
-
