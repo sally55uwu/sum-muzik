@@ -57,5 +57,6 @@ $RECYCLE.BIN/
 # Ignore temporary files
 *.swp
 
-#ignore music dir
+#ignore music dir and mp3 files
 music_examples
+*.mp3
