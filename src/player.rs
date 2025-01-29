@@ -1,8 +1,11 @@
-use rodio::OutputStream;
 /**
  * player.rs
  * Audio Playback Handler
-*/
+ */
+use rodio::{Decoder, OutputStream, Sink};
+use std::error::Error;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::PathBuf;
 use std::process;
 
@@ -108,18 +111,18 @@ pub fn update_master_volume(volume_up: bool, volume_change: Option<f32>) {
  *we can refactor later
  * */
 
-use std::error::Error;
-use std::io::BufReader;
-
+/// Prompts user to provide the absolute path (String) of a song.
+///
+/// # Returns
+/// Provided path (PathBuf).
 pub fn provide_path() -> PathBuf {
-    // OS-specific path matters!
     println!("Provide the absolute path where the song is:");
 
+    // Read line from standard input and store trimmed line as path
     let mut line = String::new();
-
     std::io::stdin().read_line(&mut line).unwrap();
-
     let path = PathBuf::from(&line.trim());
+
     if !path.exists() {
         println!("File does not exist");
         process::exit(1);
@@ -128,17 +131,22 @@ pub fn provide_path() -> PathBuf {
     path
 }
 
+/// Plays an audio file given its absolute path.
+///
+/// # Returns
+/// - `Ok(())` if audio file plays.
+/// - `Box<dyn Error>` if stream initialization, file opening,
+///     or audio decoding raise an error
 pub fn play_music() -> Result<(), Box<dyn Error>> {
     let song = provide_path();
 
+    // Create audio output stream and sink for managing playback. Open song file
     let (_stream, stream_handle) = OutputStream::try_default().unwrap();
+    let sink = Sink::try_new(&stream_handle).unwrap();
+    let file = File::open(song)?;
 
-    let sink = rodio::Sink::try_new(&stream_handle).unwrap();
-
-    let file = std::fs::File::open(song)?;
-
-    sink.append(rodio::Decoder::new(BufReader::new(file))?);
-
+    // Start playback
+    sink.append(Decoder::new(BufReader::new(file))?);
     sink.sleep_until_end();
 
     Ok(())
