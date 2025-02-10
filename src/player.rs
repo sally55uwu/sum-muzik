@@ -142,7 +142,7 @@ pub fn provide_path() -> PathBuf {
 /// - `Ok(())` if audio file plays.
 /// - `Box<dyn Error>` if stream initialization, file opening,
 ///     or audio decoding raise an error
-pub fn play_music(play_state: Arc<Mutex<(bool, f32)>>, song: PathBuf) -> Result<(), Box<dyn Error>> {
+pub fn play_music(play_state: Arc<Mutex<(bool, f32, bool)>>, song: PathBuf) -> Result<(), Box<dyn Error>> {
     // Create audio output stream and sink for managing playback. Open song file
     let (_stream, stream_handle) = OutputStream::try_default()?;
     let sink = Sink::try_new(&stream_handle)?;
@@ -171,19 +171,26 @@ pub fn play_music(play_state: Arc<Mutex<(bool, f32)>>, song: PathBuf) -> Result<
     };
 
     while !sink.empty() {
-        let current_volume = {
-            let state = play_state.lock().unwrap();
-            state.1
-        };
+
+        let state = play_state.lock().unwrap();
+
+        let current_volume = state.1;
 
         // Only update volume if requested
         if current_volume != previous_volume {
             sink.set_volume(current_volume);
             previous_volume = current_volume;
         }
-    }
+        
+        if state.2 {
 
-    // sink.sleep_until_end();
+            sink.pause();
+        }else{
+
+            sink.play();
+        }
+
+    }
 
     // Mark playback as finished
     {
@@ -193,3 +200,4 @@ pub fn play_music(play_state: Arc<Mutex<(bool, f32)>>, song: PathBuf) -> Result<
 
     Ok(())
 }
+

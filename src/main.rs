@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() {
-    let play_state = Arc::new(Mutex::new((false, 1.0)));
+    let play_state = Arc::new(Mutex::new((false, 1.0, false)));
 
     loop {
         print!("$ ");
@@ -42,7 +42,11 @@ fn main() {
                             }
                         });
                     }
-                    "pause" => println!("pause the song"),
+                    "pause" => {
+                        let mut state = play_state.lock().unwrap();
+                        state.2 = !state.2;
+                        println!("state is: {}", state.2);
+                    },
                     "vu" => {
                         let mut state = play_state.lock().unwrap();
                         if state.1 < 1.0 {
