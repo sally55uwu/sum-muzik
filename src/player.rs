@@ -8,6 +8,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::process;
+use std::sync::{Arc, Mutex};
 
 #[cfg(target_os = "windows")]
 use windows_volume_control::AudioController;
@@ -133,21 +134,36 @@ pub fn provide_path() -> PathBuf {
 
 /// Plays an audio file given its absolute path.
 ///
+/// # Arguments
+/// * `play_state`: Controls if the music is playing (Mutex<bool>)
+/// * `song`: The location of a song (PathBuf)
+///
 /// # Returns
 /// - `Ok(())` if audio file plays.
 /// - `Box<dyn Error>` if stream initialization, file opening,
 ///     or audio decoding raise an error
-pub fn play_music() -> Result<(), Box<dyn Error>> {
-    let song = provide_path();
-
+pub fn play_music(play_state: Arc<Mutex<bool>>, song: PathBuf) -> Result<(), Box<dyn Error>> {
     // Create audio output stream and sink for managing playback. Open song file
-    let (_stream, stream_handle) = OutputStream::try_default().unwrap();
-    let sink = Sink::try_new(&stream_handle).unwrap();
+    let (_stream, stream_handle) = OutputStream::try_default()?;
+    let sink = Sink::try_new(&stream_handle)?;
     let file = File::open(song)?;
 
     // Start playback
     sink.append(Decoder::new(BufReader::new(file))?);
+
+    // Mark playback as beginning
+    {
+        let mut state = play_state.lock().unwrap();
+        *state = true;
+    }
+
     sink.sleep_until_end();
+
+    // Mark playback as finished
+    {
+        let mut state = play_state.lock().unwrap();
+        *state = false;
+    }
 
     Ok(())
 }
