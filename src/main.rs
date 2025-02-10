@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() {
-    let play_state = Arc::new(Mutex::new(false));
+    let play_state = Arc::new(Mutex::new((false, 1.0)));
 
     loop {
         print!("$ ");
@@ -31,7 +31,6 @@ fn main() {
                 match input {
                     "add" => println!("Adding to playlist"),
                     "delete" => println!("Deleting from playlist"),
-                    // "play" => play_music().unwrap(),
                     "play" => {
                         let play_state_clone = Arc::clone(&play_state);
                         let song_path = provide_path();
@@ -44,6 +43,20 @@ fn main() {
                         });
                     }
                     "pause" => println!("pause the song"),
+                    "vu" => {
+                        let mut state = play_state.lock().unwrap();
+                        if state.1 < 1.0 {
+                            state.1 += 0.1;
+                            println!("Volume increased to {}", state.1);
+                        }
+                    }
+                    "vd" => {
+                        let mut state = play_state.lock().unwrap();
+                        if state.1 > 0.0 {
+                            state.1 -= 0.1;
+                            println!("Volume decreased to {}", state.1);
+                        }
+                    }
                     // "vu" => update_master_volume(true, Some(0.1)),
                     // "vd" => update_master_volume(false, Some(0.1)),
                     "exit" => break,

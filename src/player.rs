@@ -142,27 +142,53 @@ pub fn provide_path() -> PathBuf {
 /// - `Ok(())` if audio file plays.
 /// - `Box<dyn Error>` if stream initialization, file opening,
 ///     or audio decoding raise an error
-pub fn play_music(play_state: Arc<Mutex<bool>>, song: PathBuf) -> Result<(), Box<dyn Error>> {
+pub fn play_music(play_state: Arc<Mutex<(bool, f32)>>, song: PathBuf) -> Result<(), Box<dyn Error>> {
     // Create audio output stream and sink for managing playback. Open song file
     let (_stream, stream_handle) = OutputStream::try_default()?;
     let sink = Sink::try_new(&stream_handle)?;
     let file = File::open(song)?;
 
+    // Apply the initial volume
+    {
+        let state = play_state.lock().unwrap();
+        sink.set_volume(state.1);
+    }
+
+
     // Start playback
     sink.append(Decoder::new(BufReader::new(file))?);
 
-    // Mark playback as beginning
+    // Mark playback as active
     {
         let mut state = play_state.lock().unwrap();
-        *state = true;
+        state.0 = true;
     }
 
-    sink.sleep_until_end();
+    // Keep updating the volume as it is requested during playback
+    let mut previous_volume = {
+        let state = play_state.lock().unwrap();
+        state.1
+    };
+
+    while !sink.empty() {
+        let current_volume = {
+            let state = play_state.lock().unwrap();
+            state.1
+        };
+
+        // Only update volume if requested
+        if current_volume != previous_volume {
+            sink.set_volume(current_volume);
+            previous_volume = current_volume;
+        }
+    }
+
+    // sink.sleep_until_end();
 
     // Mark playback as finished
     {
         let mut state = play_state.lock().unwrap();
-        *state = false;
+        state.0 = false;
     }
 
     Ok(())
