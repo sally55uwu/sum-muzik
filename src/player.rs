@@ -106,12 +106,6 @@ pub fn update_master_volume(volume_up: bool, volume_change: Option<f32>) {
 
 // End of Windows Volume Control -----------------------------------------------
 
-/*
- *
- *I will begin all the player stuff here
- *we can refactor later
- * */
-
 /// Prompts user to provide the absolute path (String) of a song.
 ///
 /// # Returns
@@ -135,25 +129,27 @@ pub fn provide_path() -> PathBuf {
 /// Plays an audio file given its absolute path.
 ///
 /// # Arguments
-/// * `play_state`: Controls if the music is playing (Mutex<bool>)
+/// * `play_state`: Controls playback (Arc<Mutex<(bool, f32, bool)>>)
 /// * `song`: The location of a song (PathBuf)
 ///
 /// # Returns
 /// - `Ok(())` if audio file plays.
 /// - `Box<dyn Error>` if stream initialization, file opening,
 ///     or audio decoding raise an error
-pub fn play_music(play_state: Arc<Mutex<(bool, f32, bool)>>, song: PathBuf) -> Result<(), Box<dyn Error>> {
+pub fn play_music(
+    play_state: Arc<Mutex<(bool, f32, bool)>>,
+    song: PathBuf,
+) -> Result<(), Box<dyn Error>> {
     // Create audio output stream and sink for managing playback. Open song file
     let (_stream, stream_handle) = OutputStream::try_default()?;
     let sink = Sink::try_new(&stream_handle)?;
     let file = File::open(song)?;
 
-    // Apply the initial volume
+    // Apply initial volume
     {
         let state = play_state.lock().unwrap();
         sink.set_volume(state.1);
     }
-
 
     // Start playback
     sink.append(Decoder::new(BufReader::new(file))?);
@@ -164,14 +160,14 @@ pub fn play_music(play_state: Arc<Mutex<(bool, f32, bool)>>, song: PathBuf) -> R
         state.0 = true;
     }
 
-    // Keep updating the volume as it is requested during playback
+    // Update volume if requested during playback
     let mut previous_volume = {
         let state = play_state.lock().unwrap();
         state.1
     };
 
+    // During playback
     while !sink.empty() {
-
         let state = play_state.lock().unwrap();
 
         let current_volume = state.1;
@@ -181,15 +177,13 @@ pub fn play_music(play_state: Arc<Mutex<(bool, f32, bool)>>, song: PathBuf) -> R
             sink.set_volume(current_volume);
             previous_volume = current_volume;
         }
-        
+
+        // Toggle play/pause button
         if state.2 {
-
             sink.pause();
-        }else{
-
+        } else {
             sink.play();
         }
-
     }
 
     // Mark playback as finished
@@ -200,4 +194,3 @@ pub fn play_music(play_state: Arc<Mutex<(bool, f32, bool)>>, song: PathBuf) -> R
 
     Ok(())
 }
-

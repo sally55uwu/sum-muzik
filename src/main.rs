@@ -14,7 +14,7 @@ fn main() {
     let play_state = Arc::new(Mutex::new((false, 1.0, false)));
 
     loop {
-        print!("$ ");
+        print!("♪ ");
         io::stdout().flush().unwrap(); // Display prompt immediately
 
         let mut input = String::new();
@@ -45,8 +45,7 @@ fn main() {
                     "pause" => {
                         let mut state = play_state.lock().unwrap();
                         state.2 = !state.2;
-                        println!("state is: {}", state.2);
-                    },
+                    }
                     "vu" => {
                         let mut state = play_state.lock().unwrap();
                         if state.1 < 1.0 {
