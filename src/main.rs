@@ -12,6 +12,7 @@ use std::thread;
 
 fn main() {
     let play_state = Arc::new(Mutex::new((false, 1.0, false)));
+    let default_volume_offset = 0.1;
 
     loop {
         print!("♪ ");
@@ -49,15 +50,17 @@ fn main() {
                     "vu" => {
                         let mut state = play_state.lock().unwrap();
                         if state.1 < 1.0 {
-                            state.1 += 0.1;
-                            println!("Volume increased to {}", state.1);
+                            state.1 += default_volume_offset;
+                            state.1 = (state.1).clamp(0.0, 1.0);
+                            println!("Volume increased to {}", format!("{:.0}", state.1 * 100.0));
                         }
                     }
                     "vd" => {
                         let mut state = play_state.lock().unwrap();
                         if state.1 > 0.0 {
-                            state.1 -= 0.1;
-                            println!("Volume decreased to {}", state.1);
+                            state.1 -= default_volume_offset;
+                            state.1 = (state.1).clamp(0.0, 1.0);
+                            println!("Volume decreased to {}", format!("{:.0}", state.1 * 100.0));
                         }
                     }
                     // "vu" => update_master_volume(true, Some(0.1)),
