@@ -178,7 +178,7 @@ pub fn play_music(
             previous_volume = current_volume;
         }
 
-        // Toggle play/pause button
+        // Pause or resume playback if requested
         if state.2 {
             sink.pause();
         } else {

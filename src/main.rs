@@ -45,7 +45,15 @@ fn main() {
                     }
                     "pause" => {
                         let mut state = play_state.lock().unwrap();
-                        state.2 = !state.2;
+                        if !state.2 {
+                            state.2 = true;
+                        }
+                    }
+                    "resume" => {
+                        let mut state = play_state.lock().unwrap();
+                        if state.2 {
+                            state.2 = false;
+                        }
                     }
                     "vu" => {
                         let mut state = play_state.lock().unwrap();
