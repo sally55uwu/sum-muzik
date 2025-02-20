@@ -23,13 +23,16 @@ cargo run
 
 TODO:
 
-| Elizabeth      | Laura              |Both     |
-|:---------------|-------------------:|:--------|
-|[/] play        |pause [X]           |         |
-|[/] vd          |update pause cmd [] |         |
-|[/] vu          |fix play overlap [] |         |
-|                |                    |         |
-|                |                    |         |
-|                |                    |         |
-|                |                    |         |
+| Elizabeth      | Laura              |Both                       |
+|:---------------|-------------------:|:--------------------------|
+|[/] play        |pause [X]           | remove []                 |
+|[/] vd          |fix play overlap [X]| add []                    |
+|[/] vu          |                    | figure out exe script[]   |
+|[/] resume      |                    | help []                   |
+|                |                    | clear (maybe)[]           |
+|                |                    |                           |
+
+creating a script that looks at relative path for potential compatible files
+
+|[] windows impl | linux impl []      |[]adjusting to TUI rust crate|
 
