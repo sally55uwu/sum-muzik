@@ -11,7 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() {
-    let play_state = Arc::new(Mutex::new((false, 1.0, false)));
+    let play_state = Arc::new(Mutex::new((false, 1.0, false, false)));
     let default_volume_offset = 0.1;
 
     loop {
@@ -32,16 +32,26 @@ fn main() {
                 match input {
                     "add" => println!("Adding to playlist"),
                     "delete" => println!("Deleting from playlist"),
-                    "play" => {
-                        let play_state_clone = Arc::clone(&play_state);
-                        let song_path = provide_path();
+                    "play" => 
+                    {
+                        let mut currently_playing = play_state.lock().unwrap();
+                        
+                        if !currently_playing.3{
+                            let play_state_clone = Arc::clone(&play_state);
+                            let song_path = provide_path();
 
-                        // Start music playback in the background
-                        thread::spawn(move || {
-                            if let Err(e) = play_music(play_state_clone, song_path) {
-                                eprintln!("Error playing music: {}", e);
-                            }
-                        });
+                            // Start music playback in the background
+                            thread::spawn(move || {
+                                if let Err(e) = play_music(play_state_clone, song_path) {
+                                    eprintln!("Error playing music: {}", e);
+                                }
+                            });
+
+                            currently_playing.3 = true;
+                        }else{
+                            println!("\nThere is one active player currently\n");
+                            //println!(" Create a new player? (Y/N): ");
+                        }
                     }
                     "pause" => {
                         let mut state = play_state.lock().unwrap();

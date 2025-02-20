@@ -137,7 +137,7 @@ pub fn provide_path() -> PathBuf {
 /// - `Box<dyn Error>` if stream initialization, file opening,
 ///     or audio decoding raise an error
 pub fn play_music(
-    play_state: Arc<Mutex<(bool, f32, bool)>>,
+    play_state: Arc<Mutex<(bool, f32, bool, bool)>>,
     song: PathBuf,
 ) -> Result<(), Box<dyn Error>> {
     // Create audio output stream and sink for managing playback. Open song file
