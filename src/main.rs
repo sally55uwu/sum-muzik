@@ -11,6 +11,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 
 fn main() {
+    // play_state long tuple: is_playing, current_volume, is_paused, sink_active
     let play_state = Arc::new(Mutex::new((false, 1.0, false, false)));
     let default_volume_offset = 0.1;
 
@@ -32,11 +33,10 @@ fn main() {
                 match input {
                     "add" => println!("Adding to playlist"),
                     "delete" => println!("Deleting from playlist"),
-                    "play" => 
-                    {
-                        let mut currently_playing = play_state.lock().unwrap();
-                        
-                        if !currently_playing.3{
+                    "play" => {
+                        let mut state = play_state.lock().unwrap();
+
+                        if !state.3 {
                             let play_state_clone = Arc::clone(&play_state);
                             let song_path = provide_path();
 
@@ -47,9 +47,9 @@ fn main() {
                                 }
                             });
 
-                            currently_playing.3 = true;
-                        }else{
-                            println!("\nThere is one active player currently\n");
+                            state.3 = true;
+                        } else {
+                            println!("\nThere is one active player\n");
                             //println!(" Create a new player? (Y/N): ");
                         }
                     }
