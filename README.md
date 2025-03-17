@@ -26,10 +26,10 @@ TODO:
 | Elizabeth      | Laura              |Both                       |
 |:---------------|-------------------:|:--------------------------|
 |[/] play        |pause [X]           | remove []                 |
-|[/] vd          |fix play overlap [X]| add []                    |
+|[/] vd          |fix play overlap [X]| add [/]                   |
 |[/] vu          |                    | figure out exe script[]   |
 |[/] resume      |                    | help []                   |
-|                |                    | clear (maybe)[]           |
+|                |                    | clear (maybe)[/]          |
 |                |                    |                           |
 
 creating a script that looks at relative path for potential compatible files
