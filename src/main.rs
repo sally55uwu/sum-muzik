@@ -11,7 +11,7 @@ use rodio::{OutputStream, Sink};
 use std::io::{self, Write};
 use std::sync::{Arc, Mutex};
 use std::thread;
-use utils::clear_terminal;
+use utils::{clear_terminal, help, handle_invalid_cmd};
 
 fn main() {
     // Initialize Sink
@@ -87,8 +87,9 @@ fn main() {
                     // "vu" => update_master_volume(true, Some(0.1)),
                     // "vd" => update_master_volume(false, Some(0.1)),
                     "clear" => clear_terminal(),
+                    "help" => help(),
                     "exit" => break,
-                    _ => println!("Invalid command: {}", input),
+                    _ => handle_invalid_cmd(input),
                 }
             }
             Err(e) => {
