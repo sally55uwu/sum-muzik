@@ -2,13 +2,15 @@
  * player.rs
  * Audio Playback Handler
  */
-use rodio::{Decoder, OutputStream, Sink};
+use rodio::{Decoder, Sink};
 use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::PathBuf;
 use std::process;
 use std::sync::{Arc, Mutex};
+
+const INITIAL_VOLUME: f32 = 1.0;
 
 #[cfg(target_os = "windows")]
 use windows_volume_control::AudioController;
@@ -126,71 +128,52 @@ pub fn provide_path() -> PathBuf {
     path
 }
 
-/// Plays an audio file given its absolute path.
+/// Plays an audio file, given its absolute path.
 ///
 /// # Arguments
-/// * `play_state`: Controls playback (Arc<Mutex<(bool, f32, bool)>>)
+/// * `shared_sink`: Shared Sink for queueing music (Arc<Mutex<Sink>>)
 /// * `song`: The location of a song (PathBuf)
 ///
 /// # Returns
 /// - `Ok(())` if audio file plays.
 /// - `Box<dyn Error>` if stream initialization, file opening,
-///     or audio decoding raise an error
+///     or audio decoding raise an error.
 pub fn play_music(
-    play_state: Arc<Mutex<(bool, f32, bool, bool)>>,
+    shared_sink: Arc<Mutex<Sink>>,
     song: PathBuf,
 ) -> Result<(), Box<dyn Error>> {
-    // Create audio output stream and sink for managing playback. Open song file
-    let (_stream, stream_handle) = OutputStream::try_default()?;
-    let sink = Sink::try_new(&stream_handle)?;
     let file = File::open(song)?;
+    let decoder = Decoder::new(BufReader::new(file))?;
 
-    // Apply initial volume
     {
-        let state = play_state.lock().unwrap();
-        sink.set_volume(state.1);
+        // Lock and access values of shared data
+        let sink = shared_sink.lock().unwrap();
+
+        sink.set_volume(INITIAL_VOLUME); // Set initial volume
+
+        // Start playback
+        sink.append(decoder);
+        sink.play();
     }
 
-    // Start playback
-    sink.append(Decoder::new(BufReader::new(file))?);
+    Ok(())
+}
 
-    // Mark playback as active
-    {
-        let mut state = play_state.lock().unwrap();
-        state.0 = true;
-    }
+/// Adds an audio file, given its absolute path, to the queue of audio files.
+///
+/// # Arguments
+/// * `shared_sink`: Shared Sink for queueing music (Arc<Mutex<Sink>>)
+/// * `song`: The location of a song (PathBuf)
+///
+/// # Returns
+/// - `Ok(())` if audio file plays.
+/// - `Box<dyn Error>` if file opening or audio decoding raise an error.
+pub fn add_song_to_sink(shared_sink: Arc<Mutex<Sink>>, song: PathBuf) -> Result<(), Box<dyn Error>> {
+    let file = File::open(song)?;
+    let decoder = Decoder::new(BufReader::new(file))?;
 
-    // Update volume if requested during playback
-    let mut previous_volume = {
-        let state = play_state.lock().unwrap();
-        state.1
-    };
-
-    // During playback
-    while !sink.empty() {
-        let state = play_state.lock().unwrap();
-
-        let current_volume = state.1;
-
-        // Only update volume if requested
-        if current_volume != previous_volume {
-            sink.set_volume(current_volume);
-            previous_volume = current_volume;
-        }
-
-        // Pause or resume playback if requested
-        if state.2 {
-            sink.pause();
-        } else {
-            sink.play();
-        }
-    }
-
-    // Mark playback as finished
-    {
-        let mut state = play_state.lock().unwrap();
-        state.0 = false;
-    }
+    let sink = shared_sink.lock().unwrap();
+    sink.append(decoder);
 
     Ok(())
 }
