@@ -153,7 +153,7 @@ pub fn play_music(
 
         // Start playback
         sink.append(decoder);
-        sink.play();
+        // sink.play();
     }
 
     Ok(())
